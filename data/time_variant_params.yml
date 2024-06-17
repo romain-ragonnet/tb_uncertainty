@@ -34,7 +34,7 @@ life_expectancy:  # World-level data from OurWorldInData  https://ourworldindata
     - 66.5
     - 72.0
   
-treatment_success_prop:  # WHO estimate, world level, among new cases WHO Global TSR: https://www.who.int/data/gho/data/indicators/indicator-details/GHO/treatment-success-rate-new-tb-cases
+treatment_success_perc:  # WHO estimate, world level, among new cases WHO Global TSR: https://www.who.int/data/gho/data/indicators/indicator-details/GHO/treatment-success-rate-new-tb-cases
   times:
     - 1995
     - 1996
