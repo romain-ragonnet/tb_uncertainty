@@ -32,6 +32,17 @@ def get_tb_model(config: dict, intervention_params: dict, active_interventions: 
             y_pts = [0., intervention_params['preventive_treatment']['rate'] * intervention_params['preventive_treatment']['efficacy']]
         )    
 
+    if "faster_detection" in active_interventions:
+        future_detection_rates = {
+            "times": [config["intervention_time"], config["intervention_time"] + 1.],
+            "values": [Parameter('current_passive_detection_rate'), Parameter('current_passive_detection_rate') * intervention_params['faster_detection']["detection_rate_mutliplier"]]
+        }
+    else:
+        future_detection_rates = {
+            "times": [],
+            "values": []
+        }
+
     crude_birth_rate_func = stf.get_linear_interpolation_function(
         x_pts=tv_data['crude_birth_rate']['times'], y_pts=[cbr / 1000. for cbr in tv_data['crude_birth_rate']['values']]
     )
@@ -41,8 +52,8 @@ def get_tb_model(config: dict, intervention_params: dict, active_interventions: 
     )
     all_cause_mortality_func = 1. / life_expectancy_func
     
-    passive_detection_func = stf.get_sigmoidal_interpolation_function(
-        x_pts=[1950., 2024.], y_pts=[0., Parameter('current_passive_detection_rate')], curvature=16
+    detection_func = stf.get_sigmoidal_interpolation_function(
+        x_pts=[1950., 2024.] + future_detection_rates["times"], y_pts=[0., Parameter('current_passive_detection_rate')] + future_detection_rates["values"], curvature=16
     )
 
     # Treatment outcomes
@@ -141,7 +152,7 @@ def get_tb_model(config: dict, intervention_params: dict, active_interventions: 
     # detection of active TB
     model.add_transition_flow(
         name="tb_detection",
-        fractional_rate=passive_detection_func,
+        fractional_rate=detection_func,
         source="infectious",
         dest="treatment",
     )
