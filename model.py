@@ -26,6 +26,12 @@ def get_tb_model(config: dict, intervention_params: dict, active_interventions: 
     else:
         transmission_rate = Parameter("transmission_rate") 
 
+    if "preventive_treatment" in active_interventions:
+        pt_rate = stf.get_linear_interpolation_function(
+            x_pts = [config["intervention_time"], config["intervention_time"] + 1.], 
+            y_pts = [0., intervention_params['preventive_treatment']['rate'] * intervention_params['preventive_treatment']['efficacy']]
+        )    
+
     crude_birth_rate_func = stf.get_linear_interpolation_function(
         x_pts=tv_data['crude_birth_rate']['times'], y_pts=[cbr / 1000. for cbr in tv_data['crude_birth_rate']['values']]
     )
@@ -158,6 +164,11 @@ def get_tb_model(config: dict, intervention_params: dict, active_interventions: 
         death_rate=tx_death_func,
         source="treatment",
     )
+
+    # preventive treatment
+    if "preventive_treatment" in active_interventions:
+        for comp in ["latent_early", "latent_late"]:       
+            model.add_transition_flow(name=f"pt_{comp}", fractional_rate=pt_rate, source=comp, dest="susceptible")    
 
 
     """
