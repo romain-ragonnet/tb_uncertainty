@@ -43,6 +43,22 @@ def get_tb_model(config: dict, intervention_params: dict, active_interventions: 
             "values": []
         }
 
+    if "improved_treatment" in active_interventions:
+        last_tsr_val = tv_data['treatment_success_perc']['values'][-1]
+        future_tsr = {
+            "times": [config["intervention_time"], config["intervention_time"] + 1.],
+            "values": [last_tsr_val, 100. - intervention_params['improved_treatment']["negative_outcomes_rel_reduction"] * (100. - last_tsr_val)]
+        }
+    else:
+        future_tsr = {
+            "times": [],
+            "values": []
+        }
+
+
+
+
+
     crude_birth_rate_func = stf.get_linear_interpolation_function(
         x_pts=tv_data['crude_birth_rate']['times'], y_pts=[cbr / 1000. for cbr in tv_data['crude_birth_rate']['values']]
     )
@@ -61,7 +77,8 @@ def get_tb_model(config: dict, intervention_params: dict, active_interventions: 
     # * write equations for TSR and for prop deaths among all treatment outcomes (Pi). Solve for treatment death rate (mu_Tx) and relapse rate (phi).
 
     tsr_func = stf.get_linear_interpolation_function(
-        x_pts=tv_data['treatment_success_perc']['times'], y_pts=[ts_perc / 100. for ts_perc in tv_data['treatment_success_perc']['values']]
+        x_pts=tv_data['treatment_success_perc']['times'] + future_tsr["times"], 
+        y_pts=[ts_perc / 100. for ts_perc in tv_data['treatment_success_perc']['values']] + [ts_perc / 100. for ts_perc in future_tsr["values"]]
     )
 
     tx_recovery_rate = 1. / Parameter("tx_duration") 
