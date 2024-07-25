@@ -1,6 +1,7 @@
 from summer2 import CompartmentalModel
 from summer2.parameters import Parameter, DerivedOutput
-from summer2.functions.time import get_sigmoidal_interpolation_function, get_linear_interpolation_function
+from summer2.functions import time as stf
+
 
 import yaml
 from pathlib import Path   
@@ -9,21 +10,32 @@ tv_data_path = Path.cwd() / 'data' / 'time_variant_params.yml'
 with open(tv_data_path, 'r') as file:
     tv_data = yaml.safe_load(file)
 
-def get_tb_model(config: dict):
+def get_tb_model(config: dict, intervention_params: dict, active_interventions: list):
 
     """
     Prepare time-variant parameters and other quantities requiring pre-processsing
     """
-    crude_birth_rate_func = get_linear_interpolation_function(
+
+    # Intervention-related
+    if "transmission_reduction" in active_interventions:
+        tv_transmission_adj = stf.get_linear_interpolation_function(
+            x_pts = [config["intervention_time"], config["intervention_time"] + 1.], 
+            y_pts = [1., 1. - intervention_params['transmission_reduction']['rel_reduction']]
+        )
+        transmission_rate = Parameter("transmission_rate") * tv_transmission_adj
+    else:
+        transmission_rate = Parameter("transmission_rate") 
+
+    crude_birth_rate_func = stf.get_linear_interpolation_function(
         x_pts=tv_data['crude_birth_rate']['times'], y_pts=[cbr / 1000. for cbr in tv_data['crude_birth_rate']['values']]
     )
 
-    life_expectancy_func = get_linear_interpolation_function(
+    life_expectancy_func = stf.get_linear_interpolation_function(
         x_pts=tv_data['life_expectancy']['times'], y_pts=tv_data['life_expectancy']['values']
     )
     all_cause_mortality_func = 1. / life_expectancy_func
     
-    passive_detection_func = get_sigmoidal_interpolation_function(
+    passive_detection_func = stf.get_sigmoidal_interpolation_function(
         x_pts=[1950., 2024.], y_pts=[0., Parameter('current_passive_detection_rate')], curvature=16
     )
 
@@ -31,7 +43,7 @@ def get_tb_model(config: dict):
     # * tx recovery rate is 1/Tx duration
     # * write equations for TSR and for prop deaths among all treatment outcomes (Pi). Solve for treatment death rate (mu_Tx) and relapse rate (phi).
 
-    tsr_func = get_linear_interpolation_function(
+    tsr_func = stf.get_linear_interpolation_function(
         x_pts=tv_data['treatment_success_perc']['times'], y_pts=[ts_perc / 100. for ts_perc in tv_data['treatment_success_perc']['values']]
     )
 
@@ -78,14 +90,14 @@ def get_tb_model(config: dict):
     # infection and reinfection flows
     model.add_infection_frequency_flow(
         name="infection", 
-        contact_rate=Parameter("transmission_rate"),
+        contact_rate=transmission_rate,
         source="susceptible", 
         dest="latent_early",
     )
     for reinfection_source in ["latent_late", "recovered"]:
         model.add_infection_frequency_flow(
             name=f"reinfection_{reinfection_source}", 
-            contact_rate=Parameter("transmission_rate") * Parameter(f"rr_reinfection_{reinfection_source}"),
+            contact_rate=transmission_rate * Parameter(f"rr_reinfection_{reinfection_source}"),
             source=reinfection_source, 
             dest="latent_early",
         )
