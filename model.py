@@ -10,11 +10,8 @@ tv_data_path = Path.cwd() / 'data' / 'time_variant_params.yml'
 with open(tv_data_path, 'r') as file:
     tv_data = yaml.safe_load(file)
 
-def get_tb_model(config: dict, intervention_params: dict, active_interventions: list):
 
-    """
-    Prepare time-variant parameters and other quantities requiring pre-processsing
-    """
+def prepare_intervention_processes(config: dict, intervention_params: dict, active_interventions: list):
 
     # Intervention-related
     if "transmission_reduction" in active_interventions:
@@ -30,7 +27,9 @@ def get_tb_model(config: dict, intervention_params: dict, active_interventions: 
         pt_rate = stf.get_linear_interpolation_function(
             x_pts = [config["intervention_time"], config["intervention_time"] + 1.], 
             y_pts = [0., intervention_params['preventive_treatment']['rate'] * intervention_params['preventive_treatment']['efficacy']]
-        )    
+        )
+    else:
+        pt_rate = None 
 
     if "faster_detection" in active_interventions:
         future_detection_rates = {
@@ -55,9 +54,15 @@ def get_tb_model(config: dict, intervention_params: dict, active_interventions: 
             "values": []
         }
 
+    return transmission_rate, pt_rate, future_detection_rates, future_tsr
 
 
+def get_tb_model(config: dict, intervention_params: dict, active_interventions: list):
 
+    """
+    Prepare time-variant parameters and other quantities requiring pre-processsing
+    """
+    transmission_rate, pt_rate, future_detection_rates, future_tsr = prepare_intervention_processes(config, intervention_params, active_interventions)
 
     crude_birth_rate_func = stf.get_linear_interpolation_function(
         x_pts=tv_data['crude_birth_rate']['times'], y_pts=[cbr / 1000. for cbr in tv_data['crude_birth_rate']['values']]
