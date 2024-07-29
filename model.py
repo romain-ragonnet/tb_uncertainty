@@ -228,4 +228,8 @@ def get_tb_model(config: dict, intervention_params: dict, active_interventions: 
     model.request_function_output(name="tb_incidence_per100k", func=1.e5 * DerivedOutput("raw_tb_incidence") / DerivedOutput("population"))
     model.request_function_output(name="tb_mortality_per100k", func=1.e5 * DerivedOutput("all_tb_deaths") / DerivedOutput("population"))
 
+    # Cumulative outputs
+    model.request_cumulative_output(name="cumulative_TB_deaths", source="all_tb_deaths", start_time=config["intervention_time"])
+    model.request_cumulative_output(name="cumulative_incidence", source="raw_tb_incidence", start_time=config["intervention_time"])
+
     return model
