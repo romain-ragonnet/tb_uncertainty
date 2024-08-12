@@ -13,13 +13,13 @@ import model as md
 
 all_priors = [
     esp.UniformPrior("transmission_rate", [0.1, 10.]),
-    esp.UniformPrior("activation_rate_early", [0., 1.]),
-    esp.UniformPrior("activation_rate_late", [0., 1.]),
-    esp.UniformPrior("stabilisation_rate", [0., 1.]),
+    esp.UniformPrior("activation_rate_early", [0.30681, 0.547875]),  # Epidemics 2017, converted 95CIs from daily to annual rates
+    esp.UniformPrior("activation_rate_late", [0.00091, 0.00401775]), # Epidemics 2017, converted 95CIs from daily to annual rates
+    esp.UniformPrior("stabilisation_rate", [3.104625, 5.1135]), # Epidemics 2017, converted 95CIs from daily to annual rates
     esp.UniformPrior("rr_reinfection_latent_late", [0.2, 0.5]),
     esp.UniformPrior("rr_reinfection_recovered", [0.5, 1.]),
-    esp.UniformPrior("self_recovery_rate", [0., 0.5]),
-    esp.UniformPrior("tb_death_rate", [0., 0.5]),
+    esp.UniformPrior("self_recovery_rate", [0.1, 0.3]),
+    esp.UniformPrior("tb_death_rate", [0.02, 0.4]),
     esp.UniformPrior("current_passive_detection_rate", [0.2, 2.]),
 ]
 
@@ -83,7 +83,10 @@ def run_sampling(model, all_mle_params, fixed_param_name, draws=10000, tune=1000
     bcm = get_bcm_object(model, default_params | all_mle_params, fixed_param_name)
     with pm.Model() as model:
         variables = epm.use_model(bcm)
-        idata = pm.sample(step=[pm.DEMetropolisZ(variables)], draws=draws, tune=tune, cores=cores, chains=chains) 
+        idata = pm.sample(
+            step=[pm.DEMetropolisZ(variables)], draws=draws, tune=tune, cores=cores, chains=chains,
+            initvals={key: val for key, val in all_mle_params.items() if key != fixed_param_name}
+        ) 
     
     return idata
 
