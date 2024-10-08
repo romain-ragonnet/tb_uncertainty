@@ -1,0 +1,9 @@
+activation_rate_early: 0.4210959938194241
+activation_rate_late: 0.0036825751160166694
+current_passive_detection_rate: 0.22957699432446443
+rr_reinfection_latent_late: 0.3483744642362722
+rr_reinfection_recovered: 0.7970428052571336
+self_recovery_rate: 0.2187461893618782
+stabilisation_rate: 4.361052308141304
+tb_death_rate: 0.11464361343491714
+transmission_rate: 6.6103377619828425
