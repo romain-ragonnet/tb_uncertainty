@@ -63,6 +63,8 @@ fixed_params_list = [None] + [p.name for p in ut.all_priors]
 
 
 if __name__ == "__main__":
+    repo_home_path = Path.home() / "repo/tb_uncertainty"
+
     start_time = time()
 
     array_task_id = int(sys.argv[2])  # specific to this particular run/analysis
@@ -80,13 +82,12 @@ if __name__ == "__main__":
     mp.set_start_method("spawn")  # previously "forkserver"
 
     # Load MLE params
-    mle_path = Path.cwd() / "data" / "mle_params.yml"
+    mle_path = repo_home_path / "data" / "mle_params.yml"
     with open(mle_path, 'r') as file:
         mle_params = yaml.safe_load(file)
 
     fixed_param = None
     analysis_name = 'test'
-    repo_home_path = Path.home() / "repo/tb_uncertainty"
     ut.run_analysis(
         fixed_param, mle_params, ANALYSIS_CONFIG[CONFIG_MODE], model_config, intervention_params, param_analysis_output_dir,
         home_path=repo_home_path
