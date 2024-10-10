@@ -85,7 +85,11 @@ if __name__ == "__main__":
         mle_params = yaml.safe_load(file)
 
     fixed_param = None
-    analysis_name = 'test' 
-    ut.run_analysis(fixed_param, mle_params, ANALYSIS_CONFIG[CONFIG_MODE], model_config, intervention_params, param_analysis_output_dir)
+    analysis_name = 'test'
+    repo_home_path = Path.home() / "repo/tb_uncertainty"
+    ut.run_analysis(
+        fixed_param, mle_params, ANALYSIS_CONFIG[CONFIG_MODE], model_config, intervention_params, param_analysis_output_dir,
+        home_path=repo_home_path
+    )
 
     print(f"Finished in {time() - start_time} seconds", flush=True)

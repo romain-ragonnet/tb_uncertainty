@@ -6,10 +6,6 @@ from summer2.functions import time as stf
 import yaml
 from pathlib import Path   
 
-tv_data_path = Path.cwd() / 'data' / 'time_variant_params.yml'
-with open(tv_data_path, 'r') as file:
-    tv_data = yaml.safe_load(file)
-
 
 def prepare_intervention_processes(config: dict, intervention_params: dict, active_interventions: list):
 
@@ -57,11 +53,15 @@ def prepare_intervention_processes(config: dict, intervention_params: dict, acti
     return transmission_rate, pt_rate, future_detection_rates, future_tsr
 
 
-def get_tb_model(config: dict, intervention_params: dict, active_interventions: list):
+def get_tb_model(config: dict, intervention_params: dict, active_interventions: list, home_path=Path.cwd()):
 
     """
     Prepare time-variant parameters and other quantities requiring pre-processsing
     """
+    tv_data_path = home_path / 'data' / 'time_variant_params.yml'
+    with open(tv_data_path, 'r') as file:
+        tv_data = yaml.safe_load(file)
+
     transmission_rate, pt_rate, future_detection_rates, future_tsr = prepare_intervention_processes(config, intervention_params, active_interventions)
 
     crude_birth_rate_func = stf.get_linear_interpolation_function(

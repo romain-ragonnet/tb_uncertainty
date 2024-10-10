@@ -129,33 +129,33 @@ def calculate_diff_output_quantiles(ref_full_runs, sc_full_runs, quantiles=[.025
 
 
 
-def run_analysis(fixed_param, mle_params, analysis_config, model_config, intervention_params, folder_path):
+def run_analysis(fixed_param, mle_params, analysis_config, model_config, intervention_params, output_folder_path, home_path):
     
-    folder_path.mkdir(parents=True, exist_ok=True)
-    model = md.get_tb_model(model_config, intervention_params, active_interventions=[])
+    output_folder_path.mkdir(parents=True, exist_ok=True)
+    model = md.get_tb_model(model_config, intervention_params, active_interventions=[], home_path=home_path)
 
     if mle_params is None:
-        mle_params = ut.find_mle(model, opti_budget=analysis_config['opti_budget'])
+        mle_params = find_mle(model, opti_budget=analysis_config['opti_budget'])
 
     print(f"Running Metropolis sampling fixing {fixed_param}")
-    idata = ut.run_sampling(model, mle_params, fixed_param, draws=analysis_config['mcmc_samples'], tune=analysis_config['mcmc_tune'], cores=analysis_config['mcmc_cores'], chains=analysis_config['mcmc_chains'])
-    idata.to_netcdf(folder_path / f"idata_{fixed_param}.nc")
+    idata = run_sampling(model, mle_params, fixed_param, draws=analysis_config['mcmc_samples'], tune=analysis_config['mcmc_tune'], cores=analysis_config['mcmc_cores'], chains=analysis_config['mcmc_chains'])
+    idata.to_netcdf(output_folder_path / f"idata_{fixed_param}.nc")
 
     print(f"Running full runs fixing {fixed_param}")
     chain_length = idata.sample_stats.sizes['draw']
     burnt_idata = idata.sel(draw=range(analysis_config['full_runs_burnin'], chain_length))  # Discard burn-in
     full_run_param_samples =  az.extract(burnt_idata, num_samples=analysis_config['full_runs_samples'])
-    (folder_path / "full_runs").mkdir(exist_ok=True)
-    (folder_path / "diff_output_dfs").mkdir(exist_ok=True)
+    (output_folder_path / "full_runs").mkdir(exist_ok=True)
+    (output_folder_path / "diff_output_dfs").mkdir(exist_ok=True)
     for intervention in [None] + list(intervention_params.keys()):
         active_interventions = [intervention] if intervention else []
-        model = md.get_tb_model(model_config, intervention_params, active_interventions)
-        bcm = ut.get_bcm_object(model, ut.default_params | mle_params, fixed_param)
+        model = md.get_tb_model(model_config, intervention_params, active_interventions, home_path=home_path)
+        bcm = get_bcm_object(model, ut.default_params | mle_params, fixed_param)
         full_runs = esamptools.model_results_for_samples(full_run_param_samples, bcm)
-        full_runs.results.to_parquet(folder_path / "full_runs" / f"fullruns_{fixed_param}_{intervention}.parquet")
+        full_runs.results.to_parquet(output_folder_path / "full_runs" / f"fullruns_{fixed_param}_{intervention}.parquet")
 
         if intervention is None:
             ref_full_runs = deepcopy(full_runs)
         else:
-            diff_output_dfs = ut.calculate_diff_output_quantiles(ref_full_runs, full_runs)
-            diff_output_dfs.to_csv(folder_path / "diff_output_dfs" / f"diff_outputs_{fixed_param}_{intervention}.csv")
+            diff_output_dfs = calculate_diff_output_quantiles(ref_full_runs, full_runs)
+            diff_output_dfs.to_csv(output_folder_path / "diff_output_dfs" / f"diff_outputs_{fixed_param}_{intervention}.csv")
