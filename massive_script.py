@@ -68,10 +68,10 @@ if __name__ == "__main__":
     array_task_id = int(sys.argv[2])  # specific to this particular run/analysis
     fixed_param = fixed_params_list[array_task_id - 1]
 
-    output_root_dir = Path.home() / "sh30/users/rragonnet/outputs/"
+    output_root_dir = Path.home() / "sh30/users/rragonnet/outputs/tb_uncertainty"
     array_job_id = sys.argv[1]  # common to all the tasks from this array job
     analysis_output_dir = output_root_dir / f"{array_job_id}_{ANALYSIS_NAME}"
-    analysis_output_dir.mkdir(exist_ok=True)
+    analysis_output_dir.mkdir(parents=True, exist_ok=True)
 
     # create country-specific output dir
     param_analysis_output_dir = analysis_output_dir / fixed_param
