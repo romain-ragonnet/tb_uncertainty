@@ -76,7 +76,7 @@ if __name__ == "__main__":
     analysis_output_dir.mkdir(parents=True, exist_ok=True)
 
     # create country-specific output dir
-    param_analysis_output_dir = analysis_output_dir / fixed_param
+    param_analysis_output_dir = analysis_output_dir / str(fixed_param)
     param_analysis_output_dir.mkdir(exist_ok=True)
 
     mp.set_start_method("spawn")  # previously "forkserver"
@@ -86,7 +86,6 @@ if __name__ == "__main__":
     with open(mle_path, 'r') as file:
         mle_params = yaml.safe_load(file)
 
-    fixed_param = None
     analysis_name = 'test'
     ut.run_analysis(
         fixed_param, mle_params, ANALYSIS_CONFIG[CONFIG_MODE], model_config, intervention_params, param_analysis_output_dir,
