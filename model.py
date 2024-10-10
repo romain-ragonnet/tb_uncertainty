@@ -7,7 +7,7 @@ import yaml
 from pathlib import Path   
 
 
-def prepare_intervention_processes(config: dict, intervention_params: dict, active_interventions: list):
+def prepare_intervention_processes(config: dict, intervention_params: dict, active_interventions: list, tv_data):
 
     # Intervention-related
     if "transmission_reduction" in active_interventions:
@@ -62,7 +62,7 @@ def get_tb_model(config: dict, intervention_params: dict, active_interventions: 
     with open(tv_data_path, 'r') as file:
         tv_data = yaml.safe_load(file)
 
-    transmission_rate, pt_rate, future_detection_rates, future_tsr = prepare_intervention_processes(config, intervention_params, active_interventions)
+    transmission_rate, pt_rate, future_detection_rates, future_tsr = prepare_intervention_processes(config, intervention_params, active_interventions, tv_data)
 
     crude_birth_rate_func = stf.get_linear_interpolation_function(
         x_pts=tv_data['crude_birth_rate']['times'], y_pts=[cbr / 1000. for cbr in tv_data['crude_birth_rate']['values']]
