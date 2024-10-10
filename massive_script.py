@@ -5,8 +5,8 @@ from time import time
 import sys
 import yaml
 
-ANALYSIS_NAME = "test"
-CONFIG_MODE = "TEST"  # "TEST" or "FULL"
+ANALYSIS_NAME = "full"
+CONFIG_MODE = "FULL"  # "TEST" or "FULL"
 
 parent_output_folder = Path.cwd() / "outputs"
 
@@ -25,13 +25,13 @@ ANALYSIS_CONFIG = {
     "FULL": {
         'opti_budget': 10000,
 
-        'mcmc_chains': 4,
-        'mcmc_cores': 4,
-        'mcmc_tune': 1000,
-        'mcmc_samples': 5000,
+        'mcmc_chains': 8,
+        'mcmc_cores': 8,
+        'mcmc_tune': 10000,
+        'mcmc_samples': 100000,
 
-        'full_runs_burnin': 2000,
-        'full_runs_samples': 1000,
+        'full_runs_burnin': 50000,
+        'full_runs_samples': 50000,
     }
 }
 
