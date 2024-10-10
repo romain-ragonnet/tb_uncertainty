@@ -152,7 +152,7 @@ def run_analysis(fixed_param, mle_params, analysis_config, model_config, interve
         model = md.get_tb_model(model_config, intervention_params, active_interventions, home_path=home_path)
         bcm = get_bcm_object(model, default_params | mle_params, fixed_param)
         full_runs = esamptools.model_results_for_samples(full_run_param_samples, bcm)
-        full_runs.results.to_parquet(output_folder_path / "full_runs" / f"fullruns_{fixed_param}_{intervention}.parquet")
+        full_runs.results.to_hdf(output_folder_path / "full_runs" / f"fullruns_{fixed_param}_{intervention}.h5", key="my_data")
 
         if intervention is None:
             ref_full_runs = deepcopy(full_runs)
